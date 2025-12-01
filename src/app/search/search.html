@@ -1,0 +1,214 @@
+<div class="container">
+    <div class="search-card">
+        <h1>Soccer Insight Finder </h1>
+
+        <div class="search-wrapper">
+            <div class="search-input-container">
+                <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                </svg>
+
+                <input type="text" [(ngModel)]="searchTerm" (focus)="onSearchFocus()" (keydown.enter)="onSearch()"
+                    placeholder="Search something..." class="search-input" />
+
+                <button (click)="onSearch()" class="search-button">
+                    Search
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div *ngIf="isLoading" class="loading-container">
+            <div class="spinner"></div>
+            <span>Searching...</span>
+        </div>
+
+        <!-- Search Response -->
+        <div *ngIf="!isLoading && searchResponse" class="response-container">
+            <!-- Question -->
+            <div class="response-section">
+                <h3>Question</h3>
+                <div class="response-box">
+                    {{ searchResponse.question }}
+                </div>
+            </div>
+
+            <!-- Invalid Question -->
+            <div class="response-section" *ngIf="!searchResponse.success">
+                <div class="section-header">
+                    <h3>Invalid Question</h3>
+                </div>
+                <div class="invalid-box" style="color: red;">
+                    <p> Invalid questions, please ask soccer related valid questions. </p>
+                </div>
+            </div>
+
+            <!-- SQL Command -->
+            <div class="response-section" *ngIf="searchResponse.success">
+                <div class="section-header">
+                    <h3>SQL Command</h3>
+                    <button (click)="copyToClipboard(searchResponse.sql)" class="copy-button">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        Copy
+                    </button>
+                </div>
+                <div class="response-box code-box">
+                    <code>{{ searchResponse.sql }}</code>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div class="response-section" *ngIf="searchResponse.success">
+                <div class="section-header">
+                    <h3>Results</h3>
+                    <span class="result-count">{{ searchResponse.result.length }} rows</span>
+                </div>
+                <div class="table-container">
+                    <table class="result-table">
+                        <thead>
+                            <tr>
+                                <th *ngFor="let key of getResultKeys()">{{ key }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let row of searchResponse.result">
+                                <td *ngFor="let key of getResultKeys()">{{ row[key] }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Execution Time -->
+            <div class="execution-time" **ngIf="searchResponse.success">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span>Execution Time: <strong>{{ searchResponse.execution }}</strong></span>
+            </div>
+        </div>
+
+        <!-- All Search History -->
+        <div *ngIf="searchHistory.length > 0" class="all-history">
+            <h2>All Search History</h2>
+            <div class="all-history-list">
+                <div *ngFor="let item of searchHistory; let i = index" class="all-history-item">
+                    <div class="all-history-content">
+                        <span class="history-number">#{{ i + 1 }}</span>
+                        <span>{{ item }}</span>
+                    </div>
+                    <button (click)="removeHistoryItem(item, $event)" class="remove-button-gray">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- <div class="container">
+    <div class="search-card">
+        <h1>Search with History</h1> 
+
+        <div class="search-wrapper">
+            <div>
+                <div class="search-input-container">
+                    <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+
+                    <input type="text" [(ngModel)]="searchTerm" (focus)="onSearchFocus()" (keydown.enter)="onSearch()"
+                        placeholder="Search something..." class="search-input" />
+
+                    <button (click)="onSearch()" class="search-button">
+                        Search
+                    </button>
+
+                </div>
+
+            </div>
+
+            Search History Dropdown
+            <div *ngIf="showHistory && recentSearches.length > 0" class="history-dropdown">
+                <div class="history-header">
+                    <div class="history-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <span>Recent Searches</span>
+                    </div>
+                    <button (click)="clearHistory()" class="clear-button">
+                        Clear All
+                    </button>
+                </div>
+
+                <div class="history-list">
+                    <div *ngFor="let item of recentSearches; let i = index" (click)="onHistoryClick(item)"
+                        class="history-item">
+                        <div class="history-item-content">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <path d="m21 21-4.35-4.35"></path>
+                            </svg>
+                            <span>{{ item }}</span>
+                        </div>
+                        <button (click)="removeHistoryItem(item, $event)" class="remove-button">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        All Search History -->
+<!-- <div *ngIf="searchHistory.length > 0" class="all-history">
+      <h2>All Search History</h2>
+      <div class="all-history-list">
+        <div
+          *ngFor="let item of searchHistory; let i = index"
+          class="all-history-item"
+        >
+          <div class="all-history-content">
+            <span class="history-number">#{{ i + 1 }}</span>
+            <span>{{ item }}</span>
+          </div>
+          <button
+            (click)="removeHistoryItem(item, $event)"
+            class="remove-button-gray"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div> 
+    </div>
+</div> -->
