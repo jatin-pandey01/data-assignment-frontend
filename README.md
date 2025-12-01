@@ -1,59 +1,149 @@
-# DataAssignment
+# 📊 Soccer Insight Finder
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.2.1.
+Soccer Insight Finder is a clean and intuitive web application that
+allows users to query soccer insights using natural language.\
+The frontend sends the user's question to a backend API (`/api/query`),
+which then returns an AI-generated SQL command along with the query
+results.
 
-## Development server
+## 🚀 Features
 
-To start a local development server, run:
+-   🔍 **Natural Language Search** --- Example: "Top 5 players on rating
+    basis"
+-   🧠 **Auto-generated SQL Query** --- Backend converts natural text to
+    SQL
+-   📄 **SQL Preview Panel** --- Full SQL displayed with a Copy button
+-   📊 **Interactive Results Table**
+-   🕒 **Execution Time Indicator**
+-   📜 **Search History Tracking**
+-   📋 **Copy SQL to Clipboard**
 
-```bash
-ng serve
+## 🖼️ UI Overview
+
+### 🔹 Search Bar
+
+Users can enter natural language questions at the top.\
+Example: **"Top 5 player on rating basis"**
+
+### 🔹 SQL Command Panel
+
+A dark code section displaying the generated SQL.
+
+### 🔹 Results Table
+
+Displays columns such as:
+
+  player_name         max_overall_rating
+  ------------------- --------------------
+  Lionel Messi        94
+  Wayne Rooney        93
+  Gianluigi Buffon    93
+  Cristiano Ronaldo   93
+  Xavi Hernandez      92
+
+### 🔹 Search History
+
+At the bottom, users can see their previously executed queries.
+
+## 🛠️ Tech Stack
+
+**Frontend:** Angular\
+**Backend API:** ASP.NET Core Web API\
+**Database:** SQL-based\
+**Styling:** TailwindCSS / Custom Styles
+
+## 📡 API Details
+
+### Endpoint
+
+    POST https://localhost:7193/api/query
+
+### Request Body (Plain Text)
+
+    "Top 5 player on rating basis"
+
+![alt text](image.png)
+![alt text](image-1.png)
+
+### Backend Handler
+
+``` csharp
+[HttpPost]
+public IActionResult Query([FromBody] string question)
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+### Example Response
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
+``` json
+{
+  "sql": "SELECT ...",
+  "results": [
+    {
+      "player_name": "Lionel Messi",
+      "max_overall_rating": 94
+    }
+  ],
+  "executionTimeMs": 224
+}
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## 🧑‍💻 Frontend Setup (Angular)
 
-```bash
-ng generate --help
+    npm install
+    ng serve -o
+
+### Angular API Call
+
+``` ts
+const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+
+this.http.post(
+  'https://localhost:7193/api/query',
+  this.searchTerm,
+  { headers }
+).subscribe(response => {
+  console.log(response);
+});
 ```
 
-## Building
+## 🗄️ Backend Setup (ASP.NET Core)
 
-To build the project run:
+    dotnet restore
+    dotnet build
+    dotnet run
 
-```bash
-ng build
+### Enable CORS
+
+``` csharp
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod());
+});
+
+app.UseCors("AllowAll");
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## 🧪 Example Query
 
-## Running unit tests
+User Input:
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+    Top 5 player on rating basis
 
-```bash
-ng test
+Generated SQL:
+
+``` sql
+SELECT
+    T1.player_name,
+    MAX(T2.overall_rating) AS max_overall_rating
+FROM Player AS T1
+INNER JOIN Player_Attributes AS T2
+    ON T1.player_api_id = T2.player_api_id
+GROUP BY
+    T1.player_name
+ORDER BY
+    max_overall_rating DESC
+LIMIT 5;
 ```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
